@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATR Divergence Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #6675e7 0%, #764ba2 20%, #f093fb 40%, #f5576c 60%, #4facfe 80%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .calculator-card {
+            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .glass-input:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-select {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-select:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-button {
+            background: linear-gradient(135deg, #6675e7, #764ba2);
+            border: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .glass-button:hover::before {
+            left: 100%;
+        }
+        
+        .glass-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 117, 231, 0.3);
+        }
+        
+        .result-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .text-glow {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="w-auto ">
+        <div class="text-center   mb-8">
+            <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+                <i data-feather="bar-chart-2" class="text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white text-glow mb-2">ATR Divergence</h1>
+            <p class="text-white/80 text-sm">Advanced Trading Calculator</p>
+        </div>
+
+        <!-- Calculator Section -->
+        <div class="calculator-card p-6 w-auto md:p-8 flex gap-6 flex-center" data-aos="fade-up" data-aos-duration="1000">
+        
+        <div class="w-full flex flex-row gap-6">
+
+        <form id="atrCalculator" class="space-y-6">
+            <div>
+                <label class="block text-white text-sm font-medium mb-3 ml-1">Market Direction</label>
+                <select id="direction" class="glass-select w-full p-4 rounded-xl text-white focus:outline-none focus:ring-0" required>
+                    <option value="bullish" class="bg-gray-800 text-gray-200">📈 Bullish Divergence (Long)</option>
+                    <option value="bearish" class="bg-gray-800 text-gray-200">📉 Bearish Divergence (Short)</option>
+                </select>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-white text-sm font-medium mb-3 ml-1">Entry Price (E)</label>
+                    <input type="number" id="entryPrice" step="0.0001" class="glass-input w-full p-4 rounded-xl placeholder-white/70 focus:outline-none focus:ring-0" placeholder="0.0000" required>
+                </div>
+                
+                <div>
+                    <label class="block text-white text-sm font-medium mb-3 ml-1">Swing Point (S)</label>
+                    <input type="number" id="swingPoint" step="0.0001" class="glass-input w-full p-4 rounded-xl placeholder-white/70 focus:outline-none focus:ring-0" placeholder="0.0000" required>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-white text-sm font-medium mb-3 ml-1">ATR Value</label>
+                <input type="number" id="atrValue" step="0.0001" class="glass-input w-full p-4 rounded-xl placeholder-white/70 focus:outline-none focus:ring-0" placeholder="0.0000" required>
+            </div>
+            
+            <button type="submit" class="glass-button w-full text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center text-lg">
+                <i data-feather="cpu" class="mr-3"></i> Calculate Targets
+            </button>
+        </form>
+        
+        <div id="results" class="mt-8 space-y-5">
+            <div class="result-card p-6 pulse">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-semibold text-white flex items-center">
+                        <i data-feather="shield" class="mr-3 text-red-400"></i> Stop Loss (SL)
+                    </h3>
+                    <button onclick="copyToClipboard('slResult')" class="text-red-400 hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-red-400/10">
+                        <i data-feather="copy" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-3xl font-bold text-red-400 text-glow" id="slResult">-</p>
+                <div class="w-full bg-red-400/20 h-1 rounded-full mt-3">
+                    <div class="bg-red-400 h-1 rounded-full w-1/3"></div>
+                </div>
+            </div>
+            
+            <div class="result-card p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-semibold text-white flex items-center">
+                        <i data-feather="target" class="mr-3 text-green-400"></i> Take Profit 1 (TP1)
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400 text-sm font-medium">1.5× ATR</span>
+                        <button onclick="copyToClipboard('tp1Result')" class="text-green-400 hover:text-green-300 transition-colors p-2 rounded-lg hover:bg-green-400/10">
+                            <i data-feather="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-green-400 text-glow" id="tp1Result">-</p>
+                <div class="w-full bg-green-400/20 h-1 rounded-full mt-3">
+                    <div class="bg-green-400 h-1 rounded-full w-2/3"></div>
+                </div>
+            </div>
+            
+            <div class="result-card p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-semibold text-white flex items-center">
+                        <i data-feather="award" class="mr-3 text-blue-400"></i> Take Profit 2 (TP2)
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-blue-400 text-sm font-medium">3.0× ATR</span>
+                        <button onclick="copyToClipboard('tp2Result')" class="text-blue-400 hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-400/10">
+                            <i data-feather="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-blue-400 text-glow" id="tp2Result">-</p>
+                <div class="w-full bg-blue-400/20 h-1 rounded-full mt-3">
+                    <div class="bg-blue-400 h-1 rounded-full w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+        
+       
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init();
+            feather.replace();
+            
+            const form = document.getElementById('atrCalculator');
+            const slResult = document.getElementById('slResult');
+            const tp1Result = document.getElementById('tp1Result');
+            const tp2Result = document.getElementById('tp2Result');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get input values
+                const direction = document.getElementById('direction').value;
+                const entryPrice = parseFloat(document.getElementById('entryPrice').value);
+                const swingPoint = parseFloat(document.getElementById('swingPoint').value);
+                const atrValue = parseFloat(document.getElementById('atrValue').value);
+                
+                // Validate inputs
+                if (isNaN(entryPrice) || isNaN(swingPoint) || isNaN(atrValue)) {
+                    alert('Please enter valid numbers for all fields');
+                    return;
+                }
+                
+                // Calculate results based on direction
+                let sl, tp1, tp2;
+                
+                if (direction === 'bullish') {
+                    // Long position calculations
+                    sl = swingPoint - (0.5 * atrValue);
+                    tp1 = entryPrice + (1.5 * atrValue);
+                    tp2 = entryPrice + (3.0 * atrValue);
+                } else {
+                    // Short position calculations
+                    sl = swingPoint + (0.5 * atrValue);
+                    tp1 = entryPrice - (1.5 * atrValue);
+                    tp2 = entryPrice - (3.0 * atrValue);
+                }
+                
+                // Display results with 4 decimal places
+                slResult.textContent = sl.toFixed(4);
+                tp1Result.textContent = tp1.toFixed(4);
+                tp2Result.textContent = tp2.toFixed(4);
+                
+                // Show results
+                document.getElementById('results').classList.remove('hidden');
+                
+                // Force AOS refresh to animate the results
+                setTimeout(() => {
+                    AOS.refresh();
+                }, 50);
+            });
+            
+            // Copy to clipboard function
+            window.copyToClipboard = function(elementId) {
+                const text = document.getElementById(elementId).textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    // Show success feedback
+                    const button = document.querySelector(`[onclick="copyToClipboard('${elementId}')"]`);
+                    const originalIcon = button.innerHTML;
+                    button.innerHTML = '<i data-feather="check" class="w-4 h-4"></i>';
+                    feather.replace();
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalIcon;
+                        feather.replace();
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            };
+        });
+    </script>
+</body>
+</html>
